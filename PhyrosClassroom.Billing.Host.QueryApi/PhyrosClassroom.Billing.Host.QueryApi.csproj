@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\1-Presentation\PhyrosClassroom.Billing.Presentation.QueryApi\PhyrosClassroom.Billing.Presentation.QueryApi.csproj" />
+    <ProjectReference Include="..\PhyrosClassroom.Billing.Composition\PhyrosClassroom.Billing.Composition.csproj" />
+  </ItemGroup>
+</Project>

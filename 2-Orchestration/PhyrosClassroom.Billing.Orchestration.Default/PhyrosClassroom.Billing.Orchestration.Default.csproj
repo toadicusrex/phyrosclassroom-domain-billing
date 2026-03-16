@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PhyrosClassroom.Billing.Orchestration\PhyrosClassroom.Billing.Orchestration.csproj" />
+    <ProjectReference Include="..\..\3-Engines\PhyrosClassroom.Billing.Engines\PhyrosClassroom.Billing.Engines.csproj" />
+    <ProjectReference Include="..\..\4-Infrastructure\PhyrosClassroom.Billing.Infrastructure.Persistence\PhyrosClassroom.Billing.Infrastructure.Persistence.csproj" />
+    <ProjectReference Include="..\..\5-Models\PhyrosClassroom.Billing.Models\PhyrosClassroom.Billing.Models.csproj" />
+  </ItemGroup>
+</Project>

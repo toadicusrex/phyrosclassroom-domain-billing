@@ -1,0 +1,31 @@
+<Solution>
+  <Folder Name="/1-Presentation/">
+    <Project Path="1-Presentation/PhyrosClassroom.Billing.Presentation.CommandApi.Tests/PhyrosClassroom.Billing.Presentation.CommandApi.Tests.csproj" />
+    <Project Path="1-Presentation/PhyrosClassroom.Billing.Presentation.CommandApi/PhyrosClassroom.Billing.Presentation.CommandApi.csproj" />
+    <Project Path="1-Presentation/PhyrosClassroom.Billing.Presentation.QueryApi.Tests/PhyrosClassroom.Billing.Presentation.QueryApi.Tests.csproj" />
+    <Project Path="1-Presentation/PhyrosClassroom.Billing.Presentation.QueryApi/PhyrosClassroom.Billing.Presentation.QueryApi.csproj" />
+  </Folder>
+  <Folder Name="/2-Orchestration/">
+    <Project Path="2-Orchestration/PhyrosClassroom.Billing.Orchestration.Default.Tests/PhyrosClassroom.Billing.Orchestration.Default.Tests.csproj" />
+    <Project Path="2-Orchestration/PhyrosClassroom.Billing.Orchestration.Default/PhyrosClassroom.Billing.Orchestration.Default.csproj" />
+    <Project Path="2-Orchestration/PhyrosClassroom.Billing.Orchestration/PhyrosClassroom.Billing.Orchestration.csproj" />
+  </Folder>
+  <Folder Name="/3-Engines/">
+    <Project Path="3-Engines/PhyrosClassroom.Billing.Engines.Default.Tests/PhyrosClassroom.Billing.Engines.Default.Tests.csproj" />
+    <Project Path="3-Engines/PhyrosClassroom.Billing.Engines.Default/PhyrosClassroom.Billing.Engines.Default.csproj" />
+    <Project Path="3-Engines/PhyrosClassroom.Billing.Engines/PhyrosClassroom.Billing.Engines.csproj" />
+  </Folder>
+  <Folder Name="/4-Infrastructure/">
+    <Project Path="4-Infrastructure/PhyrosClassroom.Billing.Infrastructure.Persistence.Default.Tests/PhyrosClassroom.Billing.Infrastructure.Persistence.Default.Tests.csproj" />
+    <Project Path="4-Infrastructure/PhyrosClassroom.Billing.Infrastructure.Persistence.Default/PhyrosClassroom.Billing.Infrastructure.Persistence.Default.csproj" />
+    <Project Path="4-Infrastructure/PhyrosClassroom.Billing.Infrastructure.Persistence/PhyrosClassroom.Billing.Infrastructure.Persistence.csproj" />
+  </Folder>
+  <Folder Name="/5-Models/">
+    <Project Path="5-Models/PhyrosClassroom.Billing.Models.Tests/PhyrosClassroom.Billing.Models.Tests.csproj" />
+    <Project Path="5-Models/PhyrosClassroom.Billing.Models/PhyrosClassroom.Billing.Models.csproj" />
+  </Folder>
+  <Project Path="PhyrosClassroom.Billing.ApplicationCore/PhyrosClassroom.Billing.ApplicationCore.csproj" />
+  <Project Path="PhyrosClassroom.Billing.Composition/PhyrosClassroom.Billing.Composition.csproj" />
+  <Project Path="PhyrosClassroom.Billing.Host.CommandApi/PhyrosClassroom.Billing.Host.CommandApi.csproj" />
+  <Project Path="PhyrosClassroom.Billing.Host.QueryApi/PhyrosClassroom.Billing.Host.QueryApi.csproj" />
+</Solution>
