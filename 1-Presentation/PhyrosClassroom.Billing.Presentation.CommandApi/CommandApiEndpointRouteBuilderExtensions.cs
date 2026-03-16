@@ -155,6 +155,25 @@ public static class CommandApiEndpointRouteBuilderExtensions
             return Results.Ok(billing);
         });
 
+        group.MapPost("/registrations/{registrationId:guid}/invoices/{invoiceId:guid}/charge", async (
+            Guid registrationId,
+            Guid invoiceId,
+            ChargeBillingInvoiceInput input,
+            IChargeBillingInvoiceUseCase useCase,
+            CancellationToken cancellationToken) =>
+        {
+            var billing = await useCase.ExecuteAsync(
+                new ChargeBillingInvoiceRequest(
+                    registrationId,
+                    invoiceId,
+                    input.Amount,
+                    input.IdempotencyKey,
+                    input.RequestedByUserId,
+                    input.Notes),
+                cancellationToken);
+            return Results.Ok(billing);
+        });
+
         return endpoints;
     }
 }
@@ -191,6 +210,14 @@ public sealed class RecordBillingPaymentInput
     public string Reference { get; set; } = string.Empty;
     public string? Notes { get; set; }
     public string RecordedByUserId { get; set; } = string.Empty;
+}
+
+public sealed class ChargeBillingInvoiceInput
+{
+    public decimal? Amount { get; set; }
+    public string IdempotencyKey { get; set; } = string.Empty;
+    public string RequestedByUserId { get; set; } = string.Empty;
+    public string? Notes { get; set; }
 }
 
 public sealed class UpdateBillingProfileInput

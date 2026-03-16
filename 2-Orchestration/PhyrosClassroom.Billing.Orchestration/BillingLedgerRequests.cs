@@ -30,3 +30,11 @@ public sealed record RecordBillingPaymentRequest(
     string Reference,
     string? Notes,
     string RecordedByUserId);
+
+public sealed record ChargeBillingInvoiceRequest(
+    Guid RegistrationId,
+    Guid InvoiceId,
+    decimal? Amount,
+    string IdempotencyKey,
+    string RequestedByUserId,
+    string? Notes);

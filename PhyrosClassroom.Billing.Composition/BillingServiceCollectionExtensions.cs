@@ -24,6 +24,7 @@ public static class BillingServiceCollectionExtensions
         services.AddScoped<IInitializeBillingLedgerUseCase, InitializeBillingLedgerUseCase>();
         services.AddScoped<ICreateBillingInvoiceUseCase, CreateBillingInvoiceUseCase>();
         services.AddScoped<IRecordBillingPaymentUseCase, RecordBillingPaymentUseCase>();
+        services.AddScoped<IChargeBillingInvoiceUseCase, ChargeBillingInvoiceUseCase>();
 
         return services;
     }
@@ -49,11 +50,15 @@ public static class BillingServiceCollectionExtensions
         services
             .AddOptions<BillingStorageOptions>()
             .Bind(configuration.GetSection(BillingStorageOptions.SectionName));
+        services
+            .AddOptions<ExternalBillingGatewayOptions>()
+            .Bind(configuration.GetSection(ExternalBillingGatewayOptions.SectionName));
 
         services.AddSingleton<IBillingEventStore, FileBillingEventStore>();
         services.AddSingleton<IBillingReadModelStore, FileBillingReadModelStore>();
         services.AddSingleton<IBillingHydratedModelCache, InMemoryBillingHydratedModelCache>();
         services.AddSingleton<IBillingLedgerStore, FileBillingLedgerStore>();
+        services.AddSingleton<IExternalBillingGateway, SafetyFirstExternalBillingGateway>();
         services.AddSingleton<IBillingCodeGenerator, BillingCodeGenerator>();
 
         return services;

@@ -45,6 +45,7 @@ internal static class BillingLedgerFactory
             string.IsNullOrWhiteSpace(request.IdempotencyKey) ? null : request.IdempotencyKey.Trim(),
             createdAtUtc,
             createdAtUtc,
+            [],
             []);
     }
 

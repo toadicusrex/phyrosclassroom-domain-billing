@@ -15,6 +15,17 @@ public sealed record BillingPayment(
     DateTimeOffset RecordedAtUtc,
     string RecordedByUserId);
 
+public sealed record BillingChargeAttempt(
+    Guid ChargeAttemptId,
+    string IdempotencyKey,
+    decimal Amount,
+    string ProcessorName,
+    string ResultStatus,
+    string? ExternalReference,
+    string? FailureReason,
+    DateTimeOffset AttemptedAtUtc,
+    string AttemptedByUserId);
+
 public sealed record BillingInvoice(
     Guid InvoiceId,
     string InvoiceNumber,
@@ -29,7 +40,8 @@ public sealed record BillingInvoice(
     string? CreatedFromKey,
     DateTimeOffset CreatedAtUtc,
     DateTimeOffset UpdatedAtUtc,
-    IReadOnlyList<BillingPayment> Payments);
+    IReadOnlyList<BillingPayment> Payments,
+    IReadOnlyList<BillingChargeAttempt>? ChargeAttempts = null);
 
 public sealed record BillingPaymentPlan(
     bool AutoPayRequested,

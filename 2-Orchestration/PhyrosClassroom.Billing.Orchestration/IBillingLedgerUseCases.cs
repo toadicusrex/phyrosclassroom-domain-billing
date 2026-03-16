@@ -26,3 +26,8 @@ public interface IRecordBillingPaymentUseCase
 {
     Task<BillingLedger> ExecuteAsync(RecordBillingPaymentRequest request, CancellationToken cancellationToken = default);
 }
+
+public interface IChargeBillingInvoiceUseCase
+{
+    Task<BillingLedger> ExecuteAsync(ChargeBillingInvoiceRequest request, CancellationToken cancellationToken = default);
+}

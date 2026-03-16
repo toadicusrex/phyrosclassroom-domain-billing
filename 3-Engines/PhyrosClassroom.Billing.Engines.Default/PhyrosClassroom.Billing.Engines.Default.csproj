@@ -9,4 +9,8 @@
   <ItemGroup>
     <ProjectReference Include="..\PhyrosClassroom.Billing.Engines\PhyrosClassroom.Billing.Engines.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.0" />
+  </ItemGroup>
 </Project>
