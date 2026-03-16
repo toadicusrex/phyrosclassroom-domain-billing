@@ -101,8 +101,96 @@ public static class CommandApiEndpointRouteBuilderExtensions
             return Results.Ok(billing);
         });
 
+        group.MapPost("/registrations/{registrationId:guid}/initialize", async (
+            Guid registrationId,
+            InitializeBillingLedgerInput input,
+            IInitializeBillingLedgerUseCase useCase,
+            CancellationToken cancellationToken) =>
+        {
+            var billing = await useCase.ExecuteAsync(
+                new InitializeBillingLedgerRequest(
+                    registrationId,
+                    input.SubjectId,
+                    input.HouseholdName,
+                    input.UpdatedByUserId),
+                cancellationToken);
+            return Results.Ok(billing);
+        });
+
+        group.MapPost("/registrations/{registrationId:guid}/invoices", async (
+            Guid registrationId,
+            CreateBillingInvoiceInput input,
+            ICreateBillingInvoiceUseCase useCase,
+            CancellationToken cancellationToken) =>
+        {
+            var billing = await useCase.ExecuteAsync(
+                new CreateBillingInvoiceRequest(
+                    registrationId,
+                    input.Description,
+                    input.DueDate,
+                    input.Lines.Select(line => new CreateBillingInvoiceLineItem(line.Description, line.Quantity, line.UnitAmount)).ToArray(),
+                    input.CurrencyCode,
+                    input.CreatedByUserId,
+                    input.IdempotencyKey),
+                cancellationToken);
+            return Results.Ok(billing);
+        });
+
+        group.MapPost("/registrations/{registrationId:guid}/payments", async (
+            Guid registrationId,
+            RecordBillingPaymentInput input,
+            IRecordBillingPaymentUseCase useCase,
+            CancellationToken cancellationToken) =>
+        {
+            var billing = await useCase.ExecuteAsync(
+                new RecordBillingPaymentRequest(
+                    registrationId,
+                    input.InvoiceId,
+                    input.Amount,
+                    input.Method,
+                    input.Reference,
+                    input.Notes,
+                    input.RecordedByUserId),
+                cancellationToken);
+            return Results.Ok(billing);
+        });
+
         return endpoints;
     }
+}
+
+public sealed class InitializeBillingLedgerInput
+{
+    public string SubjectId { get; set; } = string.Empty;
+    public string HouseholdName { get; set; } = string.Empty;
+    public string UpdatedByUserId { get; set; } = string.Empty;
+}
+
+public sealed class CreateBillingInvoiceInput
+{
+    public string Description { get; set; } = string.Empty;
+    public DateOnly DueDate { get; set; }
+    public string CurrencyCode { get; set; } = "USD";
+    public string CreatedByUserId { get; set; } = string.Empty;
+    public string? IdempotencyKey { get; set; }
+    public List<CreateBillingInvoiceLineInput> Lines { get; set; } = [];
+}
+
+public sealed class CreateBillingInvoiceLineInput
+{
+    public string Description { get; set; } = string.Empty;
+    public int Quantity { get; set; }
+    public decimal UnitAmount { get; set; }
+}
+
+public sealed class RecordBillingPaymentInput
+{
+    public Guid InvoiceId { get; set; }
+    public decimal Amount { get; set; }
+    public string Method { get; set; } = string.Empty;
+    public string Reference { get; set; } = string.Empty;
+    public string? Notes { get; set; }
+    public string RecordedByUserId { get; set; } = string.Empty;
 }
 
 public sealed class UpdateBillingProfileInput

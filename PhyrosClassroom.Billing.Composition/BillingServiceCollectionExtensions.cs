@@ -21,6 +21,9 @@ public static class BillingServiceCollectionExtensions
         services.AddScoped<IGetBillingByIdUseCase, GetBillingByIdUseCase>();
         services.AddScoped<IGetBillingAtPointInTimeUseCase, GetBillingAtPointInTimeUseCase>();
         services.AddScoped<IGetBillingEventHistoryUseCase, GetBillingEventHistoryUseCase>();
+        services.AddScoped<IInitializeBillingLedgerUseCase, InitializeBillingLedgerUseCase>();
+        services.AddScoped<ICreateBillingInvoiceUseCase, CreateBillingInvoiceUseCase>();
+        services.AddScoped<IRecordBillingPaymentUseCase, RecordBillingPaymentUseCase>();
 
         return services;
     }
@@ -33,6 +36,8 @@ public static class BillingServiceCollectionExtensions
         services.AddScoped<IListBillingUseCase, ListBillingUseCase>();
         services.AddScoped<IGetBillingReadModelByIdUseCase, GetBillingReadModelByIdUseCase>();
         services.AddScoped<IGetBillingReadModelBySubjectIdUseCase, GetBillingReadModelBySubjectIdUseCase>();
+        services.AddScoped<IGetBillingLedgerByRegistrationIdUseCase, GetBillingLedgerByRegistrationIdUseCase>();
+        services.AddScoped<IGetBillingLedgerBySubjectIdUseCase, GetBillingLedgerBySubjectIdUseCase>();
 
         return services;
     }
@@ -48,6 +53,7 @@ public static class BillingServiceCollectionExtensions
         services.AddSingleton<IBillingEventStore, FileBillingEventStore>();
         services.AddSingleton<IBillingReadModelStore, FileBillingReadModelStore>();
         services.AddSingleton<IBillingHydratedModelCache, InMemoryBillingHydratedModelCache>();
+        services.AddSingleton<IBillingLedgerStore, FileBillingLedgerStore>();
         services.AddSingleton<IBillingCodeGenerator, BillingCodeGenerator>();
 
         return services;

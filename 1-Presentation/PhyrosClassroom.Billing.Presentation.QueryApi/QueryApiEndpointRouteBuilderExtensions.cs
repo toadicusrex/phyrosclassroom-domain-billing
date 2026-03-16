@@ -37,6 +37,24 @@ public static class QueryApiEndpointRouteBuilderExtensions
             return billing is null ? Results.NotFound() : Results.Ok(billing);
         });
 
+        group.MapGet("/registrations/{registrationId:guid}", async (
+            Guid registrationId,
+            IGetBillingLedgerByRegistrationIdUseCase useCase,
+            CancellationToken cancellationToken) =>
+        {
+            var billing = await useCase.ExecuteAsync(registrationId, cancellationToken);
+            return billing is null ? Results.NotFound() : Results.Ok(billing);
+        });
+
+        group.MapGet("/ledgers/by-subject/{subjectId}", async (
+            string subjectId,
+            IGetBillingLedgerBySubjectIdUseCase useCase,
+            CancellationToken cancellationToken) =>
+        {
+            var billing = await useCase.ExecuteAsync(subjectId, cancellationToken);
+            return billing is null ? Results.NotFound() : Results.Ok(billing);
+        });
+
         return endpoints;
     }
 }
