@@ -73,6 +73,15 @@ public static class QueryApiEndpointRouteBuilderExtensions
             return Results.Ok(overdueInvoices);
         });
 
+        group.MapGet("/operations/charge-reviews", async (
+            bool includeResolved,
+            IListBillingChargeReviewQueueUseCase useCase,
+            CancellationToken cancellationToken) =>
+        {
+            var chargeReviews = await useCase.ExecuteAsync(includeResolved, cancellationToken);
+            return Results.Ok(chargeReviews);
+        });
+
         return endpoints;
     }
 }

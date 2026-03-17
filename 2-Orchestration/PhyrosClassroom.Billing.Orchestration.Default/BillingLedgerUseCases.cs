@@ -356,6 +356,49 @@ public sealed class RunBillingAutoPayBatchUseCase(
         BillingEligibility.IsEligibleForAutoPay(ledger, invoice, runDate);
 }
 
+public sealed class ResolveBillingChargeAttemptUseCase(IBillingLedgerStore store) : IResolveBillingChargeAttemptUseCase
+{
+    public async Task<BillingLedger> ExecuteAsync(ResolveBillingChargeAttemptRequest request, CancellationToken cancellationToken = default)
+    {
+        var ledger = await store.GetByRegistrationIdAsync(request.RegistrationId, cancellationToken)
+            ?? throw new InvalidOperationException("No billing ledger exists for this registration.");
+        var invoice = ledger.Invoices.FirstOrDefault(existing => existing.InvoiceId == request.InvoiceId)
+            ?? throw new InvalidOperationException("Invoice was not found.");
+        var chargeAttempt = (invoice.ChargeAttempts ?? []).FirstOrDefault(existing => existing.ChargeAttemptId == request.ChargeAttemptId)
+            ?? throw new InvalidOperationException("Charge attempt was not found.");
+
+        if (string.IsNullOrWhiteSpace(request.ResolutionStatus))
+        {
+            throw new InvalidOperationException("Resolution status is required.");
+        }
+
+        var resolvedAtUtc = DateTimeOffset.UtcNow;
+        var updatedAttempt = chargeAttempt with
+        {
+            ResolutionStatus = request.ResolutionStatus.Trim(),
+            ResolutionNotes = string.IsNullOrWhiteSpace(request.ResolutionNotes) ? null : request.ResolutionNotes.Trim(),
+            ResolvedAtUtc = resolvedAtUtc,
+            ResolvedByUserId = request.ResolvedByUserId,
+        };
+
+        var updatedInvoice = invoice with
+        {
+            ChargeAttempts = (invoice.ChargeAttempts ?? [])
+                .Select(existing => existing.ChargeAttemptId == request.ChargeAttemptId ? updatedAttempt : existing)
+                .ToArray(),
+            UpdatedAtUtc = resolvedAtUtc,
+        };
+
+        var updatedLedger = ledger with
+        {
+            Invoices = ledger.Invoices.Select(existing => existing.InvoiceId == invoice.InvoiceId ? updatedInvoice : existing).ToArray(),
+            UpdatedAtUtc = resolvedAtUtc,
+        };
+
+        return await store.SaveAsync(updatedLedger, cancellationToken);
+    }
+}
+
 public sealed class GetBillingOperationsSummaryUseCase(IBillingLedgerStore store) : IGetBillingOperationsSummaryUseCase
 {
     public async Task<BillingOperationsSummary> ExecuteAsync(DateOnly? asOfDate = null, CancellationToken cancellationToken = default)
@@ -376,6 +419,9 @@ public sealed class GetBillingOperationsSummaryUseCase(IBillingLedgerStore store
                     string.Equals(attempt.ResultStatus, "Declined", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(attempt.ResultStatus, "Blocked", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(attempt.ResultStatus, "Failed", StringComparison.OrdinalIgnoreCase)) ?? 0),
+            invoices.Sum(item => item.Invoice.ChargeAttempts?.Count(attempt =>
+                    BillingChargeReviewPolicy.RequiresReview(attempt) &&
+                    string.IsNullOrWhiteSpace(attempt.ResolutionStatus)) ?? 0),
             effectiveDate);
     }
 }
@@ -413,6 +459,42 @@ public sealed class ListBillingOverdueInvoicesUseCase(IBillingLedgerStore store)
     }
 }
 
+public sealed class ListBillingChargeReviewQueueUseCase(IBillingLedgerStore store) : IListBillingChargeReviewQueueUseCase
+{
+    public async Task<IReadOnlyList<BillingChargeReviewItem>> ExecuteAsync(bool includeResolved = false, CancellationToken cancellationToken = default)
+    {
+        var ledgers = await store.ListAsync(cancellationToken);
+
+        return ledgers
+            .SelectMany(ledger => ledger.Invoices.SelectMany(invoice => (invoice.ChargeAttempts ?? [])
+                .Where(BillingChargeReviewPolicy.RequiresReview)
+                .Where(attempt => includeResolved || string.IsNullOrWhiteSpace(attempt.ResolutionStatus))
+                .Select(attempt => new BillingChargeReviewItem(
+                    ledger.RegistrationId,
+                    invoice.InvoiceId,
+                    attempt.ChargeAttemptId,
+                    ledger.SubjectId,
+                    ledger.HouseholdName,
+                    invoice.InvoiceNumber,
+                    attempt.Amount,
+                    attempt.ProcessorName,
+                    attempt.ResultStatus,
+                    attempt.ExternalReference,
+                    attempt.FailureReason,
+                    invoice.DueDate,
+                    attempt.AttemptedAtUtc,
+                    attempt.AttemptedByUserId,
+                    !string.IsNullOrWhiteSpace(attempt.ResolutionStatus),
+                    attempt.ResolutionStatus,
+                    attempt.ResolutionNotes,
+                    attempt.ResolvedAtUtc,
+                    attempt.ResolvedByUserId))))
+            .OrderByDescending(item => item.AttemptedAtUtc)
+            .ThenBy(item => item.HouseholdName, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+}
+
 internal static class BillingEligibility
 {
     public static bool IsEligibleForAutoPay(BillingLedger ledger, BillingInvoice invoice, DateOnly runDate)
@@ -432,4 +514,12 @@ internal static class BillingEligibility
 
         return true;
     }
+}
+
+internal static class BillingChargeReviewPolicy
+{
+    public static bool RequiresReview(BillingChargeAttempt attempt) =>
+        string.Equals(attempt.ResultStatus, "Declined", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(attempt.ResultStatus, "Blocked", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(attempt.ResultStatus, "Failed", StringComparison.OrdinalIgnoreCase);
 }

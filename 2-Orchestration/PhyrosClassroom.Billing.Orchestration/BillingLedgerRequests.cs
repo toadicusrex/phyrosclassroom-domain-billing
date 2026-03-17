@@ -60,3 +60,11 @@ public sealed record RunBillingAutoPayBatchRequest(
     string IdempotencyKey,
     string RequestedByUserId,
     bool DryRun);
+
+public sealed record ResolveBillingChargeAttemptRequest(
+    Guid RegistrationId,
+    Guid InvoiceId,
+    Guid ChargeAttemptId,
+    string ResolutionStatus,
+    string? ResolutionNotes,
+    string ResolvedByUserId);

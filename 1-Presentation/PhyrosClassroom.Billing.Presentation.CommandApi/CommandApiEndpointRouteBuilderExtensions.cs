@@ -174,6 +174,26 @@ public static class CommandApiEndpointRouteBuilderExtensions
             return Results.Ok(billing);
         });
 
+        group.MapPost("/registrations/{registrationId:guid}/invoices/{invoiceId:guid}/charge-attempts/{chargeAttemptId:guid}/resolve", async (
+            Guid registrationId,
+            Guid invoiceId,
+            Guid chargeAttemptId,
+            ResolveBillingChargeAttemptInput input,
+            IResolveBillingChargeAttemptUseCase useCase,
+            CancellationToken cancellationToken) =>
+        {
+            var billing = await useCase.ExecuteAsync(
+                new ResolveBillingChargeAttemptRequest(
+                    registrationId,
+                    invoiceId,
+                    chargeAttemptId,
+                    input.ResolutionStatus,
+                    input.ResolutionNotes,
+                    input.ResolvedByUserId),
+                cancellationToken);
+            return Results.Ok(billing);
+        });
+
         group.MapPost("/auto-pay/run", async (
             RunBillingAutoPayBatchInput input,
             IRunBillingAutoPayBatchUseCase useCase,
@@ -277,6 +297,13 @@ public sealed class RunBillingAutoPayBatchInput
     public string IdempotencyKey { get; set; } = string.Empty;
     public string RequestedByUserId { get; set; } = string.Empty;
     public bool DryRun { get; set; } = true;
+}
+
+public sealed class ResolveBillingChargeAttemptInput
+{
+    public string ResolutionStatus { get; set; } = string.Empty;
+    public string? ResolutionNotes { get; set; }
+    public string ResolvedByUserId { get; set; } = string.Empty;
 }
 
 public sealed class UpdateBillingPaymentPlanInput

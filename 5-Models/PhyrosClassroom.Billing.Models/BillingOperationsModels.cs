@@ -8,6 +8,7 @@ public sealed record BillingOperationsSummary(
     int AutoPayEnabledLedgerCount,
     int AutoPayEligibleInvoiceCount,
     int FailedChargeAttemptCount,
+    int UnresolvedChargeAttemptCount,
     DateOnly AsOfDate);
 
 public sealed record BillingOverdueInvoiceSummary(

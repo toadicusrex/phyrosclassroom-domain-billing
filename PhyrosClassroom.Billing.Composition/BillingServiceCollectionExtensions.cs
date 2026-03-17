@@ -28,6 +28,7 @@ public static class BillingServiceCollectionExtensions
         services.AddScoped<IUpdateBillingPaymentPlanUseCase, UpdateBillingPaymentPlanUseCase>();
         services.AddScoped<IUpsertBillingPaymentMethodUseCase, UpsertBillingPaymentMethodUseCase>();
         services.AddScoped<IRunBillingAutoPayBatchUseCase, RunBillingAutoPayBatchUseCase>();
+        services.AddScoped<IResolveBillingChargeAttemptUseCase, ResolveBillingChargeAttemptUseCase>();
 
         return services;
     }
@@ -44,6 +45,7 @@ public static class BillingServiceCollectionExtensions
         services.AddScoped<IGetBillingLedgerBySubjectIdUseCase, GetBillingLedgerBySubjectIdUseCase>();
         services.AddScoped<IGetBillingOperationsSummaryUseCase, GetBillingOperationsSummaryUseCase>();
         services.AddScoped<IListBillingOverdueInvoicesUseCase, ListBillingOverdueInvoicesUseCase>();
+        services.AddScoped<IListBillingChargeReviewQueueUseCase, ListBillingChargeReviewQueueUseCase>();
 
         return services;
     }

@@ -24,7 +24,11 @@ public sealed record BillingChargeAttempt(
     string? ExternalReference,
     string? FailureReason,
     DateTimeOffset AttemptedAtUtc,
-    string AttemptedByUserId);
+    string AttemptedByUserId,
+    string? ResolutionStatus = null,
+    string? ResolutionNotes = null,
+    DateTimeOffset? ResolvedAtUtc = null,
+    string? ResolvedByUserId = null);
 
 public sealed record BillingPaymentMethod(
     Guid PaymentMethodId,
@@ -90,3 +94,24 @@ public sealed record BillingAutoPayRunResult(
     int ProcessedInvoiceCount,
     IReadOnlyList<BillingAutoPayRunInvoiceResult> Invoices,
     DateTimeOffset CompletedAtUtc);
+
+public sealed record BillingChargeReviewItem(
+    Guid RegistrationId,
+    Guid InvoiceId,
+    Guid ChargeAttemptId,
+    string SubjectId,
+    string HouseholdName,
+    string InvoiceNumber,
+    decimal Amount,
+    string ProcessorName,
+    string ResultStatus,
+    string? ExternalReference,
+    string? FailureReason,
+    DateOnly DueDate,
+    DateTimeOffset AttemptedAtUtc,
+    string AttemptedByUserId,
+    bool Resolved,
+    string? ResolutionStatus,
+    string? ResolutionNotes,
+    DateTimeOffset? ResolvedAtUtc,
+    string? ResolvedByUserId);
