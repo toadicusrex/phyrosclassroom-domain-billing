@@ -264,3 +264,109 @@ public sealed class UpsertBillingPaymentMethodUseCase(IBillingLedgerStore store)
         return await store.SaveAsync(updatedLedger, cancellationToken);
     }
 }
+
+public sealed class RunBillingAutoPayBatchUseCase(
+    IBillingLedgerStore store,
+    IChargeBillingInvoiceUseCase chargeBillingInvoiceUseCase) : IRunBillingAutoPayBatchUseCase
+{
+    public async Task<BillingAutoPayRunResult> ExecuteAsync(RunBillingAutoPayBatchRequest request, CancellationToken cancellationToken = default)
+    {
+        var idempotencyKey = request.IdempotencyKey.Trim();
+        if (string.IsNullOrWhiteSpace(idempotencyKey))
+        {
+            throw new InvalidOperationException("Auto-pay batch idempotency key is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.RequestedByUserId))
+        {
+            throw new InvalidOperationException("Requested by user id is required.");
+        }
+
+        var ledgers = await store.ListAsync(cancellationToken);
+        var eligibleInvoices = ledgers
+            .SelectMany(ledger => ledger.Invoices
+                .Where(invoice => IsEligibleForAutoPay(ledger, invoice, request.RunDate))
+                .Select(invoice => new { Ledger = ledger, Invoice = invoice }))
+            .OrderBy(item => item.Ledger.HouseholdName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(item => item.Invoice.DueDate)
+            .ToList();
+
+        var results = new List<BillingAutoPayRunInvoiceResult>(eligibleInvoices.Count);
+
+        foreach (var item in eligibleInvoices)
+        {
+            var paymentMethodLabel = item.Ledger.PaymentPlan.DefaultPaymentMethodLabel;
+            if (request.DryRun)
+            {
+                results.Add(new BillingAutoPayRunInvoiceResult(
+                    item.Ledger.RegistrationId,
+                    item.Invoice.InvoiceId,
+                    item.Ledger.SubjectId,
+                    item.Ledger.HouseholdName,
+                    item.Invoice.InvoiceNumber,
+                    item.Invoice.BalanceDue,
+                    "DryRunEligible",
+                    "DryRun",
+                    null,
+                    null,
+                    paymentMethodLabel));
+                continue;
+            }
+
+            var attemptKey = $"{idempotencyKey}:{item.Ledger.RegistrationId:N}:{item.Invoice.InvoiceId:N}:{request.RunDate:yyyyMMdd}";
+            var updatedLedger = await chargeBillingInvoiceUseCase.ExecuteAsync(
+                new ChargeBillingInvoiceRequest(
+                    item.Ledger.RegistrationId,
+                    item.Invoice.InvoiceId,
+                    item.Invoice.BalanceDue,
+                    attemptKey,
+                    request.RequestedByUserId,
+                    $"AutoPay batch {request.RunDate:yyyy-MM-dd}"),
+                cancellationToken);
+
+            var updatedInvoice = updatedLedger.Invoices.First(updated => updated.InvoiceId == item.Invoice.InvoiceId);
+            var latestAttempt = (updatedInvoice.ChargeAttempts ?? []).FirstOrDefault(existing =>
+                string.Equals(existing.IdempotencyKey, attemptKey, StringComparison.Ordinal));
+
+            results.Add(new BillingAutoPayRunInvoiceResult(
+                updatedLedger.RegistrationId,
+                updatedInvoice.InvoiceId,
+                updatedLedger.SubjectId,
+                updatedLedger.HouseholdName,
+                updatedInvoice.InvoiceNumber,
+                latestAttempt?.Amount ?? item.Invoice.BalanceDue,
+                latestAttempt?.ResultStatus ?? updatedInvoice.Status,
+                latestAttempt?.ProcessorName ?? "Unknown",
+                latestAttempt?.ExternalReference,
+                latestAttempt?.FailureReason,
+                paymentMethodLabel));
+        }
+
+        return new BillingAutoPayRunResult(
+            request.RunDate,
+            idempotencyKey,
+            request.DryRun,
+            eligibleInvoices.Count,
+            results.Count(result => !string.Equals(result.ResultStatus, "DryRunEligible", StringComparison.Ordinal)),
+            results,
+            DateTimeOffset.UtcNow);
+    }
+
+    private static bool IsEligibleForAutoPay(BillingLedger ledger, BillingInvoice invoice, DateOnly runDate)
+    {
+        if (!ledger.PaymentPlan.AutoPayRequested ||
+            ledger.PaymentPlan.RequestedChargeDayOfMonth != runDate.Day ||
+            string.IsNullOrWhiteSpace(ledger.PaymentPlan.DefaultPaymentMethodLabel) ||
+            !ledger.PaymentMethods.Any(method => method.IsDefault || string.Equals(method.Label, ledger.PaymentPlan.DefaultPaymentMethodLabel, StringComparison.Ordinal)))
+        {
+            return false;
+        }
+
+        if (invoice.BalanceDue <= 0m || invoice.DueDate > runDate)
+        {
+            return false;
+        }
+
+        return true;
+    }
+}

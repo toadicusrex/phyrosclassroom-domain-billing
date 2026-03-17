@@ -54,3 +54,9 @@ public sealed record UpsertBillingPaymentMethodRequest(
     string MaskedDetails,
     bool IsDefault,
     string UpdatedByUserId);
+
+public sealed record RunBillingAutoPayBatchRequest(
+    DateOnly RunDate,
+    string IdempotencyKey,
+    string RequestedByUserId,
+    bool DryRun);

@@ -68,3 +68,25 @@ public sealed record BillingLedger(
     IReadOnlyList<BillingPaymentMethod> PaymentMethods,
     BillingPaymentPlan PaymentPlan,
     DateTimeOffset UpdatedAtUtc);
+
+public sealed record BillingAutoPayRunInvoiceResult(
+    Guid RegistrationId,
+    Guid InvoiceId,
+    string SubjectId,
+    string HouseholdName,
+    string InvoiceNumber,
+    decimal Amount,
+    string ResultStatus,
+    string ProcessorName,
+    string? ExternalReference,
+    string? FailureReason,
+    string? PaymentMethodLabel);
+
+public sealed record BillingAutoPayRunResult(
+    DateOnly RunDate,
+    string IdempotencyKey,
+    bool DryRun,
+    int EligibleInvoiceCount,
+    int ProcessedInvoiceCount,
+    IReadOnlyList<BillingAutoPayRunInvoiceResult> Invoices,
+    DateTimeOffset CompletedAtUtc);

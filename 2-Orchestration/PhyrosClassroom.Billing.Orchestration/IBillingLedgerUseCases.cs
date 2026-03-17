@@ -41,3 +41,8 @@ public interface IUpsertBillingPaymentMethodUseCase
 {
     Task<BillingLedger> ExecuteAsync(UpsertBillingPaymentMethodRequest request, CancellationToken cancellationToken = default);
 }
+
+public interface IRunBillingAutoPayBatchUseCase
+{
+    Task<BillingAutoPayRunResult> ExecuteAsync(RunBillingAutoPayBatchRequest request, CancellationToken cancellationToken = default);
+}

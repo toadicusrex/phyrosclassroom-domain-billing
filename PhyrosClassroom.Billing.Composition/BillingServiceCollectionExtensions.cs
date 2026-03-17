@@ -27,6 +27,7 @@ public static class BillingServiceCollectionExtensions
         services.AddScoped<IChargeBillingInvoiceUseCase, ChargeBillingInvoiceUseCase>();
         services.AddScoped<IUpdateBillingPaymentPlanUseCase, UpdateBillingPaymentPlanUseCase>();
         services.AddScoped<IUpsertBillingPaymentMethodUseCase, UpsertBillingPaymentMethodUseCase>();
+        services.AddScoped<IRunBillingAutoPayBatchUseCase, RunBillingAutoPayBatchUseCase>();
 
         return services;
     }
