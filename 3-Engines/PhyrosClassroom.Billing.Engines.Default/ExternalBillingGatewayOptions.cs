@@ -14,4 +14,8 @@ public sealed class ExternalBillingGatewayOptions
     public string? ApiKey { get; set; }
     public string? BearerToken { get; set; }
     public string? MerchantKey { get; set; }
+    public string? SourceKey { get; set; }
+    public string? Pin { get; set; }
+    public string ClerkName { get; set; } = "PhyrosClassroom";
+    public string? ClientIpAddress { get; set; }
 }

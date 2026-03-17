@@ -110,6 +110,9 @@ public sealed class HttpExternalBillingGateway(HttpClient httpClient, IOptions<E
         public string RequestedByUserId { get; set; } = string.Empty;
         public string? Notes { get; set; }
         public BillingPaymentMethod? PaymentMethod { get; set; }
+        public string? ProviderName => PaymentMethod?.ProviderName;
+        public string? ExternalCustomerId => PaymentMethod?.ExternalCustomerId;
+        public string? ExternalPaymentMethodId => PaymentMethod?.ExternalPaymentMethodId;
     }
 
     private sealed class HttpExternalBillingChargeResponse

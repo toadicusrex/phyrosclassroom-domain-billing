@@ -35,6 +35,9 @@ public sealed record BillingPaymentMethod(
     string Label,
     string MethodKind,
     string MaskedDetails,
+    string? ProviderName,
+    string? ExternalCustomerId,
+    string? ExternalPaymentMethodId,
     bool IsDefault,
     DateTimeOffset UpdatedAtUtc,
     string UpdatedByUserId);

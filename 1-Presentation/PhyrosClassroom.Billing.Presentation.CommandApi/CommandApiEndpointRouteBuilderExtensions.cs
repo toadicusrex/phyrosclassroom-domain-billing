@@ -239,6 +239,9 @@ public static class CommandApiEndpointRouteBuilderExtensions
                     input.Label,
                     input.MethodKind,
                     input.MaskedDetails,
+                    input.ProviderName,
+                    input.ExternalCustomerId,
+                    input.ExternalPaymentMethodId,
                     input.IsDefault,
                     input.UpdatedByUserId),
                 cancellationToken);
@@ -320,6 +323,9 @@ public sealed class UpsertBillingPaymentMethodInput
     public string Label { get; set; } = string.Empty;
     public string MethodKind { get; set; } = string.Empty;
     public string MaskedDetails { get; set; } = string.Empty;
+    public string? ProviderName { get; set; }
+    public string? ExternalCustomerId { get; set; }
+    public string? ExternalPaymentMethodId { get; set; }
     public bool IsDefault { get; set; }
     public string UpdatedByUserId { get; set; } = string.Empty;
 }
