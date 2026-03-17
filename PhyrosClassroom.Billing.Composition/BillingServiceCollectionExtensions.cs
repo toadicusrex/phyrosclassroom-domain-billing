@@ -46,6 +46,7 @@ public static class BillingServiceCollectionExtensions
         services.AddScoped<IGetBillingOperationsSummaryUseCase, GetBillingOperationsSummaryUseCase>();
         services.AddScoped<IListBillingOverdueInvoicesUseCase, ListBillingOverdueInvoicesUseCase>();
         services.AddScoped<IListBillingChargeReviewQueueUseCase, ListBillingChargeReviewQueueUseCase>();
+        services.AddScoped<IGetBillingReconciliationSummaryUseCase, GetBillingReconciliationSummaryUseCase>();
 
         return services;
     }

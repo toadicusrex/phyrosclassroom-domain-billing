@@ -495,6 +495,39 @@ public sealed class ListBillingChargeReviewQueueUseCase(IBillingLedgerStore stor
     }
 }
 
+public sealed class GetBillingReconciliationSummaryUseCase(IBillingLedgerStore store) : IGetBillingReconciliationSummaryUseCase
+{
+    public async Task<BillingReconciliationSummary> ExecuteAsync(CancellationToken cancellationToken = default)
+    {
+        var ledgers = await store.ListAsync(cancellationToken);
+        var invoices = ledgers.SelectMany(ledger => ledger.Invoices).ToArray();
+        var attempts = invoices.SelectMany(invoice => invoice.ChargeAttempts ?? []).ToArray();
+
+        var unresolvedInvoiceIds = invoices
+            .Where(invoice => (invoice.ChargeAttempts ?? []).Any(attempt =>
+                BillingChargeReviewPolicy.RequiresReview(attempt) &&
+                string.IsNullOrWhiteSpace(attempt.ResolutionStatus)))
+            .Select(invoice => invoice.InvoiceId)
+            .ToHashSet();
+
+        var resolvedInvoiceIds = invoices
+            .Where(invoice => (invoice.ChargeAttempts ?? []).Any(attempt =>
+                BillingChargeReviewPolicy.RequiresReview(attempt) &&
+                !string.IsNullOrWhiteSpace(attempt.ResolutionStatus)))
+            .Select(invoice => invoice.InvoiceId)
+            .ToHashSet();
+
+        return new BillingReconciliationSummary(
+            attempts.Count(attempt => BillingChargeReviewPolicy.RequiresReview(attempt) && string.IsNullOrWhiteSpace(attempt.ResolutionStatus)),
+            attempts.Count(attempt => BillingChargeReviewPolicy.RequiresReview(attempt) && !string.IsNullOrWhiteSpace(attempt.ResolutionStatus)),
+            attempts.Count(attempt => string.Equals(attempt.ResultStatus, "Approved", StringComparison.OrdinalIgnoreCase) ||
+                                      string.Equals(attempt.ResultStatus, "Succeeded", StringComparison.OrdinalIgnoreCase)),
+            invoices.Where(invoice => resolvedInvoiceIds.Contains(invoice.InvoiceId)).Sum(invoice => invoice.BalanceDue),
+            invoices.Where(invoice => unresolvedInvoiceIds.Contains(invoice.InvoiceId)).Sum(invoice => invoice.BalanceDue),
+            DateTimeOffset.UtcNow);
+    }
+}
+
 internal static class BillingEligibility
 {
     public static bool IsEligibleForAutoPay(BillingLedger ledger, BillingInvoice invoice, DateOnly runDate)

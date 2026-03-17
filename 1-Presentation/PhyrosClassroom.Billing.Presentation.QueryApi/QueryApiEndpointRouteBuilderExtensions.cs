@@ -82,6 +82,14 @@ public static class QueryApiEndpointRouteBuilderExtensions
             return Results.Ok(chargeReviews);
         });
 
+        group.MapGet("/operations/reconciliation-summary", async (
+            IGetBillingReconciliationSummaryUseCase useCase,
+            CancellationToken cancellationToken) =>
+        {
+            var summary = await useCase.ExecuteAsync(cancellationToken);
+            return Results.Ok(summary);
+        });
+
         return endpoints;
     }
 }

@@ -66,3 +66,8 @@ public interface IListBillingChargeReviewQueueUseCase
 {
     Task<IReadOnlyList<BillingChargeReviewItem>> ExecuteAsync(bool includeResolved = false, CancellationToken cancellationToken = default);
 }
+
+public interface IGetBillingReconciliationSummaryUseCase
+{
+    Task<BillingReconciliationSummary> ExecuteAsync(CancellationToken cancellationToken = default);
+}
