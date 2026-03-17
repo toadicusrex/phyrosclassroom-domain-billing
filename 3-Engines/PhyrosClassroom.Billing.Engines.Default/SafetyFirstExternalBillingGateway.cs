@@ -1,10 +1,11 @@
-using Microsoft.Extensions.Options;
 using PhyrosClassroom.Billing.Engines;
 using PhyrosClassroom.Billing.Models;
 
 namespace PhyrosClassroom.Billing.Engines.Default;
 
-public sealed class SafetyFirstExternalBillingGateway(IOptions<ExternalBillingGatewayOptions> options) : IExternalBillingGateway
+public sealed class SafetyFirstExternalBillingGateway(
+    HttpExternalBillingGateway httpGateway,
+    Microsoft.Extensions.Options.IOptions<ExternalBillingGatewayOptions> options) : IExternalBillingGateway
 {
     public Task<ExternalBillingChargeResult> ChargeInvoiceAsync(
         BillingLedger ledger,
@@ -51,12 +52,12 @@ public sealed class SafetyFirstExternalBillingGateway(IOptions<ExternalBillingGa
 
         if (mode is "legacyusepay" or "usepay")
         {
-            return Task.FromResult(new ExternalBillingChargeResult(
-                false,
-                "USePay",
-                "NotConfigured",
-                null,
-                "Legacy USePay charging has not been wired into this service yet. Keep live charging disabled or use simulated modes until the provider integration is implemented."));
+            return httpGateway.ChargeInvoiceAsync(ledger, invoice, request, cancellationToken);
+        }
+
+        if (mode is "http" or "live" or "external")
+        {
+            return httpGateway.ChargeInvoiceAsync(ledger, invoice, request, cancellationToken);
         }
 
         return Task.FromResult(new ExternalBillingChargeResult(

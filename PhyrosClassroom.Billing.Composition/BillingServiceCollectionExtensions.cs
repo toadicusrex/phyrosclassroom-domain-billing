@@ -66,6 +66,7 @@ public static class BillingServiceCollectionExtensions
         services.AddSingleton<IBillingReadModelStore, FileBillingReadModelStore>();
         services.AddSingleton<IBillingHydratedModelCache, InMemoryBillingHydratedModelCache>();
         services.AddSingleton<IBillingLedgerStore, FileBillingLedgerStore>();
+        services.AddHttpClient<HttpExternalBillingGateway>();
         services.AddSingleton<IExternalBillingGateway, SafetyFirstExternalBillingGateway>();
         services.AddSingleton<IBillingCodeGenerator, BillingCodeGenerator>();
 
