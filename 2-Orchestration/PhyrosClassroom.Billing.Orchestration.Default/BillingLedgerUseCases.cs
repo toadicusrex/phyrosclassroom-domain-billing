@@ -352,7 +352,70 @@ public sealed class RunBillingAutoPayBatchUseCase(
             DateTimeOffset.UtcNow);
     }
 
-    private static bool IsEligibleForAutoPay(BillingLedger ledger, BillingInvoice invoice, DateOnly runDate)
+    private static bool IsEligibleForAutoPay(BillingLedger ledger, BillingInvoice invoice, DateOnly runDate) =>
+        BillingEligibility.IsEligibleForAutoPay(ledger, invoice, runDate);
+}
+
+public sealed class GetBillingOperationsSummaryUseCase(IBillingLedgerStore store) : IGetBillingOperationsSummaryUseCase
+{
+    public async Task<BillingOperationsSummary> ExecuteAsync(DateOnly? asOfDate = null, CancellationToken cancellationToken = default)
+    {
+        var effectiveDate = asOfDate ?? DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        var ledgers = await store.ListAsync(cancellationToken);
+        var invoices = ledgers.SelectMany(ledger => ledger.Invoices.Select(invoice => new { Ledger = ledger, Invoice = invoice })).ToArray();
+        var overdueInvoices = invoices.Where(item => item.Invoice.BalanceDue > 0m && item.Invoice.DueDate < effectiveDate).ToArray();
+
+        return new BillingOperationsSummary(
+            ledgers.Count,
+            invoices.Count(item => item.Invoice.BalanceDue > 0m),
+            overdueInvoices.Length,
+            invoices.Sum(item => item.Invoice.BalanceDue),
+            ledgers.Count(ledger => ledger.PaymentPlan.AutoPayRequested),
+            invoices.Count(item => BillingEligibility.IsEligibleForAutoPay(item.Ledger, item.Invoice, effectiveDate)),
+            invoices.Sum(item => item.Invoice.ChargeAttempts?.Count(attempt =>
+                    string.Equals(attempt.ResultStatus, "Declined", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(attempt.ResultStatus, "Blocked", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(attempt.ResultStatus, "Failed", StringComparison.OrdinalIgnoreCase)) ?? 0),
+            effectiveDate);
+    }
+}
+
+public sealed class ListBillingOverdueInvoicesUseCase(IBillingLedgerStore store) : IListBillingOverdueInvoicesUseCase
+{
+    public async Task<IReadOnlyList<BillingOverdueInvoiceSummary>> ExecuteAsync(DateOnly? asOfDate = null, CancellationToken cancellationToken = default)
+    {
+        var effectiveDate = asOfDate ?? DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        var ledgers = await store.ListAsync(cancellationToken);
+
+        return ledgers
+            .SelectMany(ledger => ledger.Invoices
+                .Where(invoice => invoice.BalanceDue > 0m && invoice.DueDate < effectiveDate)
+                .Select(invoice =>
+                {
+                    var latestAttempt = invoice.ChargeAttempts?.OrderByDescending(attempt => attempt.AttemptedAtUtc).FirstOrDefault();
+                    return new BillingOverdueInvoiceSummary(
+                        ledger.RegistrationId,
+                        ledger.SubjectId,
+                        ledger.HouseholdName,
+                        invoice.InvoiceId,
+                        invoice.InvoiceNumber,
+                        invoice.DueDate,
+                        invoice.BalanceDue,
+                        ledger.PaymentPlan.AutoPayRequested,
+                        ledger.PaymentPlan.DefaultPaymentMethodLabel,
+                        latestAttempt?.ResultStatus,
+                        latestAttempt?.FailureReason,
+                        invoice.UpdatedAtUtc);
+                }))
+            .OrderBy(item => item.DueDate)
+            .ThenBy(item => item.HouseholdName, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+}
+
+internal static class BillingEligibility
+{
+    public static bool IsEligibleForAutoPay(BillingLedger ledger, BillingInvoice invoice, DateOnly runDate)
     {
         if (!ledger.PaymentPlan.AutoPayRequested ||
             ledger.PaymentPlan.RequestedChargeDayOfMonth != runDate.Day ||

@@ -46,3 +46,13 @@ public interface IRunBillingAutoPayBatchUseCase
 {
     Task<BillingAutoPayRunResult> ExecuteAsync(RunBillingAutoPayBatchRequest request, CancellationToken cancellationToken = default);
 }
+
+public interface IGetBillingOperationsSummaryUseCase
+{
+    Task<BillingOperationsSummary> ExecuteAsync(DateOnly? asOfDate = null, CancellationToken cancellationToken = default);
+}
+
+public interface IListBillingOverdueInvoicesUseCase
+{
+    Task<IReadOnlyList<BillingOverdueInvoiceSummary>> ExecuteAsync(DateOnly? asOfDate = null, CancellationToken cancellationToken = default);
+}

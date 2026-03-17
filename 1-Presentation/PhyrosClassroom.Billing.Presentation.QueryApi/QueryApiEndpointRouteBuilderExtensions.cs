@@ -55,6 +55,24 @@ public static class QueryApiEndpointRouteBuilderExtensions
             return billing is null ? Results.NotFound() : Results.Ok(billing);
         });
 
+        group.MapGet("/operations/summary", async (
+            DateOnly? asOfDate,
+            IGetBillingOperationsSummaryUseCase useCase,
+            CancellationToken cancellationToken) =>
+        {
+            var summary = await useCase.ExecuteAsync(asOfDate, cancellationToken);
+            return Results.Ok(summary);
+        });
+
+        group.MapGet("/operations/overdue", async (
+            DateOnly? asOfDate,
+            IListBillingOverdueInvoicesUseCase useCase,
+            CancellationToken cancellationToken) =>
+        {
+            var overdueInvoices = await useCase.ExecuteAsync(asOfDate, cancellationToken);
+            return Results.Ok(overdueInvoices);
+        });
+
         return endpoints;
     }
 }
