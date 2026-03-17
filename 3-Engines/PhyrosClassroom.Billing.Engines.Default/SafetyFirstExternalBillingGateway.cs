@@ -63,9 +63,9 @@ public sealed class SafetyFirstExternalBillingGateway(
         return Task.FromResult(new ExternalBillingChargeResult(
             false,
             configuredOptions.ProviderName,
-            "NotImplemented",
+            "NotConfigured",
             null,
-            "No live billing gateway implementation has been configured for this provider."));
+            "No live billing gateway mode has been configured. Use ExternalBillingGateway:Mode=http or usepay and provide the required connection settings."));
     }
 
     private static string Normalize(string? value) =>
