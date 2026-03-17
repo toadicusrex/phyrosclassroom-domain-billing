@@ -14,6 +14,7 @@ internal static class BillingLedgerFactory
             request.SubjectId.Trim(),
             request.HouseholdName.Trim(),
             [],
+            [],
             new BillingPaymentPlan(false, null, null, now, request.UpdatedByUserId),
             now);
     }

@@ -36,3 +36,8 @@ public interface IUpdateBillingPaymentPlanUseCase
 {
     Task<BillingLedger> ExecuteAsync(UpdateBillingPaymentPlanRequest request, CancellationToken cancellationToken = default);
 }
+
+public interface IUpsertBillingPaymentMethodUseCase
+{
+    Task<BillingLedger> ExecuteAsync(UpsertBillingPaymentMethodRequest request, CancellationToken cancellationToken = default);
+}

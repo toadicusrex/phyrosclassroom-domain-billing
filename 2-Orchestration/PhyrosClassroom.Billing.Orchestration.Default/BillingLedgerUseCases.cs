@@ -214,3 +214,53 @@ public sealed class UpdateBillingPaymentPlanUseCase(IBillingLedgerStore store) :
         return await store.SaveAsync(updatedLedger, cancellationToken);
     }
 }
+
+public sealed class UpsertBillingPaymentMethodUseCase(IBillingLedgerStore store) : IUpsertBillingPaymentMethodUseCase
+{
+    public async Task<BillingLedger> ExecuteAsync(UpsertBillingPaymentMethodRequest request, CancellationToken cancellationToken = default)
+    {
+        var ledger = await store.GetByRegistrationIdAsync(request.RegistrationId, cancellationToken)
+            ?? throw new InvalidOperationException("No billing ledger exists for this registration.");
+
+        if (string.IsNullOrWhiteSpace(request.Label) || string.IsNullOrWhiteSpace(request.MethodKind) || string.IsNullOrWhiteSpace(request.MaskedDetails))
+        {
+            throw new InvalidOperationException("Payment method label, kind, and masked details are required.");
+        }
+
+        var updatedAtUtc = DateTimeOffset.UtcNow;
+        var paymentMethodId = request.PaymentMethodId.GetValueOrDefault(Guid.NewGuid());
+        var paymentMethods = ledger.PaymentMethods
+            .Where(existing => existing.PaymentMethodId != paymentMethodId)
+            .Select(existing => existing with { IsDefault = request.IsDefault ? false : existing.IsDefault })
+            .ToList();
+
+        var paymentMethod = new BillingPaymentMethod(
+            paymentMethodId,
+            request.Label.Trim(),
+            request.MethodKind.Trim(),
+            request.MaskedDetails.Trim(),
+            request.IsDefault,
+            updatedAtUtc,
+            request.UpdatedByUserId);
+
+        paymentMethods.Add(paymentMethod);
+
+        var currentDefaultLabel = request.IsDefault
+            ? paymentMethod.Label
+            : paymentMethods.FirstOrDefault(existing => existing.IsDefault)?.Label ?? ledger.PaymentPlan.DefaultPaymentMethodLabel;
+
+        var updatedLedger = ledger with
+        {
+            PaymentMethods = paymentMethods.OrderBy(existing => existing.Label).ToArray(),
+            PaymentPlan = ledger.PaymentPlan with
+            {
+                DefaultPaymentMethodLabel = currentDefaultLabel,
+                UpdatedAtUtc = updatedAtUtc,
+                UpdatedByUserId = request.UpdatedByUserId,
+            },
+            UpdatedAtUtc = updatedAtUtc,
+        };
+
+        return await store.SaveAsync(updatedLedger, cancellationToken);
+    }
+}

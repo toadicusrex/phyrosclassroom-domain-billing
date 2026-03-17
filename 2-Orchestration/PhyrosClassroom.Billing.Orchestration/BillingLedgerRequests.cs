@@ -45,3 +45,12 @@ public sealed record UpdateBillingPaymentPlanRequest(
     int? RequestedChargeDayOfMonth,
     string? DefaultPaymentMethodLabel,
     string UpdatedByUserId);
+
+public sealed record UpsertBillingPaymentMethodRequest(
+    Guid RegistrationId,
+    Guid? PaymentMethodId,
+    string Label,
+    string MethodKind,
+    string MaskedDetails,
+    bool IsDefault,
+    string UpdatedByUserId);

@@ -191,6 +191,25 @@ public static class CommandApiEndpointRouteBuilderExtensions
             return Results.Ok(billing);
         });
 
+        group.MapPost("/registrations/{registrationId:guid}/payment-methods", async (
+            Guid registrationId,
+            UpsertBillingPaymentMethodInput input,
+            IUpsertBillingPaymentMethodUseCase useCase,
+            CancellationToken cancellationToken) =>
+        {
+            var billing = await useCase.ExecuteAsync(
+                new UpsertBillingPaymentMethodRequest(
+                    registrationId,
+                    input.PaymentMethodId,
+                    input.Label,
+                    input.MethodKind,
+                    input.MaskedDetails,
+                    input.IsDefault,
+                    input.UpdatedByUserId),
+                cancellationToken);
+            return Results.Ok(billing);
+        });
+
         return endpoints;
     }
 }
@@ -242,6 +261,16 @@ public sealed class UpdateBillingPaymentPlanInput
     public bool AutoPayRequested { get; set; }
     public int? RequestedChargeDayOfMonth { get; set; }
     public string? DefaultPaymentMethodLabel { get; set; }
+    public string UpdatedByUserId { get; set; } = string.Empty;
+}
+
+public sealed class UpsertBillingPaymentMethodInput
+{
+    public Guid? PaymentMethodId { get; set; }
+    public string Label { get; set; } = string.Empty;
+    public string MethodKind { get; set; } = string.Empty;
+    public string MaskedDetails { get; set; } = string.Empty;
+    public bool IsDefault { get; set; }
     public string UpdatedByUserId { get; set; } = string.Empty;
 }
 

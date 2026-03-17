@@ -26,6 +26,15 @@ public sealed record BillingChargeAttempt(
     DateTimeOffset AttemptedAtUtc,
     string AttemptedByUserId);
 
+public sealed record BillingPaymentMethod(
+    Guid PaymentMethodId,
+    string Label,
+    string MethodKind,
+    string MaskedDetails,
+    bool IsDefault,
+    DateTimeOffset UpdatedAtUtc,
+    string UpdatedByUserId);
+
 public sealed record BillingInvoice(
     Guid InvoiceId,
     string InvoiceNumber,
@@ -56,5 +65,6 @@ public sealed record BillingLedger(
     string SubjectId,
     string HouseholdName,
     IReadOnlyList<BillingInvoice> Invoices,
+    IReadOnlyList<BillingPaymentMethod> PaymentMethods,
     BillingPaymentPlan PaymentPlan,
     DateTimeOffset UpdatedAtUtc);
