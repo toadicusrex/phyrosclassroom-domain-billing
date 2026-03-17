@@ -239,6 +239,9 @@ public sealed class UpsertBillingPaymentMethodUseCase(IBillingLedgerStore store)
             request.Label.Trim(),
             request.MethodKind.Trim(),
             request.MaskedDetails.Trim(),
+            string.IsNullOrWhiteSpace(request.ProviderName) ? null : request.ProviderName.Trim(),
+            string.IsNullOrWhiteSpace(request.ExternalCustomerId) ? null : request.ExternalCustomerId.Trim(),
+            string.IsNullOrWhiteSpace(request.ExternalPaymentMethodId) ? null : request.ExternalPaymentMethodId.Trim(),
             request.IsDefault,
             updatedAtUtc,
             request.UpdatedByUserId);

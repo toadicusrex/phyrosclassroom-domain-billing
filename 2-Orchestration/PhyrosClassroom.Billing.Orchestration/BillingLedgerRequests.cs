@@ -52,6 +52,9 @@ public sealed record UpsertBillingPaymentMethodRequest(
     string Label,
     string MethodKind,
     string MaskedDetails,
+    string? ProviderName,
+    string? ExternalCustomerId,
+    string? ExternalPaymentMethodId,
     bool IsDefault,
     string UpdatedByUserId);
 

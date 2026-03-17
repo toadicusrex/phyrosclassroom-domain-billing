@@ -5,6 +5,7 @@ namespace PhyrosClassroom.Billing.Engines.Default;
 
 public sealed class SafetyFirstExternalBillingGateway(
     HttpExternalBillingGateway httpGateway,
+    UsaEpayExternalBillingGateway usaEpayGateway,
     Microsoft.Extensions.Options.IOptions<ExternalBillingGatewayOptions> options) : IExternalBillingGateway
 {
     public Task<ExternalBillingChargeResult> ChargeInvoiceAsync(
@@ -52,7 +53,7 @@ public sealed class SafetyFirstExternalBillingGateway(
 
         if (mode is "legacyusepay" or "usepay")
         {
-            return httpGateway.ChargeInvoiceAsync(ledger, invoice, request, cancellationToken);
+            return usaEpayGateway.ChargeInvoiceAsync(ledger, invoice, request, cancellationToken);
         }
 
         if (mode is "http" or "live" or "external")
