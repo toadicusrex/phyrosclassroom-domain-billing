@@ -181,3 +181,36 @@ public sealed class ChargeBillingInvoiceUseCase(
         return await store.SaveAsync(updatedLedger, cancellationToken);
     }
 }
+
+public sealed class UpdateBillingPaymentPlanUseCase(IBillingLedgerStore store) : IUpdateBillingPaymentPlanUseCase
+{
+    public async Task<BillingLedger> ExecuteAsync(UpdateBillingPaymentPlanRequest request, CancellationToken cancellationToken = default)
+    {
+        var ledger = await store.GetByRegistrationIdAsync(request.RegistrationId, cancellationToken)
+            ?? throw new InvalidOperationException("No billing ledger exists for this registration.");
+
+        var normalizedDay = request.RequestedChargeDayOfMonth;
+        if (normalizedDay is < 1 or > 28)
+        {
+            throw new InvalidOperationException("Requested charge day must be between 1 and 28.");
+        }
+
+        var updatedAtUtc = DateTimeOffset.UtcNow;
+        var updatedLedger = ledger with
+        {
+            PaymentPlan = ledger.PaymentPlan with
+            {
+                AutoPayRequested = request.AutoPayRequested,
+                RequestedChargeDayOfMonth = request.AutoPayRequested ? normalizedDay : null,
+                DefaultPaymentMethodLabel = string.IsNullOrWhiteSpace(request.DefaultPaymentMethodLabel)
+                    ? null
+                    : request.DefaultPaymentMethodLabel.Trim(),
+                UpdatedAtUtc = updatedAtUtc,
+                UpdatedByUserId = request.UpdatedByUserId,
+            },
+            UpdatedAtUtc = updatedAtUtc,
+        };
+
+        return await store.SaveAsync(updatedLedger, cancellationToken);
+    }
+}

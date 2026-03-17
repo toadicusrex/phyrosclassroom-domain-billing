@@ -38,3 +38,10 @@ public sealed record ChargeBillingInvoiceRequest(
     string IdempotencyKey,
     string RequestedByUserId,
     string? Notes);
+
+public sealed record UpdateBillingPaymentPlanRequest(
+    Guid RegistrationId,
+    bool AutoPayRequested,
+    int? RequestedChargeDayOfMonth,
+    string? DefaultPaymentMethodLabel,
+    string UpdatedByUserId);
